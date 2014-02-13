@@ -58,4 +58,4 @@ If you use GMail, the NCDC email may be automatically categorized in the Promoti
 
 ![CDO Step 10](images/CDO_Step_10.png)
 
-There is a link to check the status of the data set generation job. It's mostly useless, since you'll get another email dispatched as soon as it's ready for download.
+There is a link to check the status of the data set generation job. It's mostly useless, since you'll get another email dispatched as soon as it's ready for download. For this particular data set, which I've requested several times over in the process of creating this documentation, I had to wait about 12 minutes to get the download link.
