@@ -3,6 +3,12 @@ chicago-snow-viz
 
 Visualizing historical snowfall levels in Chicago.
 
+## Contents
+
+* [Background](#background)
+* [Data Source](#data-source)
+  * [Getting The Data](#getting-the-data)
+* [Setting Up Your Development Environment](#setting-up-your-development-environment)
 
 ## Background
 
@@ -59,3 +65,15 @@ If you use GMail, the NCDC email may be automatically categorized in the Promoti
 ![CDO Step 10](images/CDO_Step_10.png)
 
 There is a link to check the status of the data set generation job. It's mostly useless, since you'll get another email dispatched as soon as it's ready for download. For this particular data set, which I've requested several times over in the process of creating this documentation, I had to wait about 12 minutes to get the download link at non-business hours. This wait will change depending on the number of requests that CDO is currently handling, so be patient.
+
+## Setting Up Your Development Environment
+
+I develop visualizations with [D3js](http://d3js.org/), Data-Driven Documents, a fantastic JavaScript data visualization library that manipulates the [DOM](https://developer.mozilla.org/en-US/docs/DOM) (Document Object Model) using your data as the driver. Check out the list of excellent D3 tutorials [here](https://github.com/mbostock/d3/wiki/Tutorials). 
+
+In order to be able to make changes rapidly and see the effects immediately, I use Python to run a local web server:
+
+```
+python -m SimpleHTTPServer 8000
+```
+
+I run this from the root of this repository, so if I'm editing `index.html` then I can just browse to [http://localhost:8000/index.html](http://localhost:8000/index.html) to see my changes. As soon as I make changes and save the file, I can refresh the page in my browser to see the result.
