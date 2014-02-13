@@ -76,4 +76,4 @@ In order to be able to make changes rapidly and see the effects immediately, I u
 python -m SimpleHTTPServer 8000
 ```
 
-I run this from the root of this repository, so if I'm editing `index.html` then I can just browse to [http://localhost:8000/index.html](http://localhost:8000/index.html) to see my changes. As soon as I make changes and save the file, I can refresh the page in my browser to see the result.
+I run this from the root of this repository, so if I'm editing `snowdepth.html` then I can just browse to [http://localhost:8000/snowdepth.html](http://localhost:8000/snowdepth.html) to see my changes. As soon as I make changes and save the file, I can refresh the page in my browser to see the result.
