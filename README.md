@@ -21,16 +21,47 @@ If you go to the main GHCN Daily page, you will find several ways to access the 
 * **Search For** - Stations
 * **Enter a Search Term** - Chicago
 
+Screenshot:
+![CDO Step 1](images/CDO_Step_1.png)
+
 The search results contain a number of stations with "Chicago" in their name, and each result also shows the "Period of Record", or the range of time for which measurements are available for download. Strangely, even though I chose a date range going back to 1964, it shows me weather stations that have far less data than that. I have to scroll through the results examining the Period of Record until I find that [CHICAGO OHARE INTERNATIONAL AIRPORT](http://www.ncdc.noaa.gov/cdo-web/datasets/GHCND/stations/GHCND:USW00094846/detail) has data from 1958-11-01 to the present day.
 
+![CDO Step 2](images/CDO_Step_2.png)
+
 At the bottom of the station's page, there is an area where you can explore the types of data recorded by this weather station and how complete each type is. We're primarily interested in measurements related to snow, so we click on "Precipitation" to see that there is 98% coverage for SNWD (snow depth) and 99% coverage for SNOW (snowfall). I'm guessing that the last 1-2% may be from non-winter days, but it's still pretty good if it's missing some data from a few days in the winter.
+
+![CDO Step 3](images/CDO_Step_3.png)
 
 ### Getting The Data
 
 Data sets are created on the fly for you and take some time for the system to generate. You specify what data you would like, submit the job to the system with your email address, and a link to the data will be sent to you when it's ready.
 
-To get started, you have to add the station to your data shopping cart with the ADD TO CART button, go to your [shopping cart](http://www.ncdc.noaa.gov/cdo-web/cart), and select a few related options. We will make sure that the Date Range is still 1964-01-01 to 2014-02-07. Next, choose "Custom GHCN-Daily CSV" for the output format. Then click the CONTINUE button at the bottom of the page.
+To get started, you have to add the station to your data shopping cart with the ADD TO CART button:
 
-On the next page there are options for what you want included in the data set. In the "Station Detail & Data Flag Options" area, uncheck all the options. While station name might be interesting, this unnecessarily bloats the file as the station name is redundantly included on every line of the CSV file and we're only querying one station at a time. In the "Select data types for custom output" area, expand the Precipitation header and check the boxes for Snow depth and Snowfall. Then click the CONTINUE button at the bottom of the page.
+![CDO Step 4](images/CDO_Step_4.png)
 
-Enter your email address where you would like the data download URL to be sent and then click the SUBMIT ORDER button at the bottom of the page.
+Then go to your [shopping cart](http://www.ncdc.noaa.gov/cdo-web/cart) through the link in the top right corner of the site:
+
+![CDO Step 5](images/CDO_Step_5.png)
+
+We will make sure that the Date Range is still 1964-01-01 to 2014-02-07. Next, choose "Custom GHCN-Daily CSV" for the output format. Then click the CONTINUE button at the bottom of the page:
+
+![CDO Step 6](images/CDO_Step_6.png)
+
+On the next page there are options for what you want included in the data set. In the "Station Detail & Data Flag Options" area, uncheck all the options. While station name might be interesting, this unnecessarily bloats the file as the station name is redundantly included on every line of the CSV file and we're only querying one station at a time:
+
+![CDO Step 7](images/CDO_Step_7.png)
+
+In the "Select data types for custom output" area, expand the Precipitation header and check the boxes for Snow depth and Snowfall. Then click the CONTINUE button at the bottom of the page:
+
+![CDO Step 8](images/CDO_Step_8.png)
+
+Enter your email address where you would like the data download URL to be sent and then click the SUBMIT ORDER button at the bottom of the page:
+
+![CDO Step 9](images/CDO_Step_9.png)
+
+If you use GMail, the NCDC email may be automatically categorized in the Promotions area. Check in your different email categories if you don't see the email appear immediately in your Inbox. The email will look like this:
+
+![CDO Step 10](images/CDO_Step_10.png)
+
+There is a link to check the status of the data set generation job. It's mostly useless, since you'll get another email dispatched as soon as it's ready for download.
