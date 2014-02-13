@@ -16,12 +16,6 @@ We want daily measurements that include snow depth, so we'll use the [GHCN Daily
 
 If you go to the main GHCN Daily page, you will find several ways to access the data and find what you're looking for. We'll use the [text search](http://www.ncdc.noaa.gov/cdo-web/search?datasetid=GHCND), where we'll choose the following selections:
 
-* **Select Weather Observation Type/Dataset** - Daily Summaries
-* **Select Date Range** - 1964-01-01 to 2014-02-10
-* **Search For** - Stations
-* **Enter a Search Term** - Chicago
-
-Screenshot:
 ![CDO Step 1](images/CDO_Step_1.png)
 
 The search results contain a number of stations with "Chicago" in their name, and each result also shows the "Period of Record", or the range of time for which measurements are available for download. Strangely, even though I chose a date range going back to 1964, it shows me weather stations that have far less data than that. I have to scroll through the results examining the Period of Record until I find that [CHICAGO OHARE INTERNATIONAL AIRPORT](http://www.ncdc.noaa.gov/cdo-web/datasets/GHCND/stations/GHCND:USW00094846/detail) has data from 1958-11-01 to the present day.
