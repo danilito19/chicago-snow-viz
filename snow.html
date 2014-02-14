@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body {
+  font: 10px sans-serif;
+  shape-rendering: crispEdges;
+}
+
+.day {
+  fill: #fff;
+  stroke: #ccc;
+}
+
+.month {
+  fill: none;
+  stroke: #000;
+  stroke-width: 2px;
+}
+
+.YlGnBu .q0-9{fill:rgb(255,255,217)}
+.YlGnBu .q1-9{fill:rgb(237,248,177)}
+.YlGnBu .q2-9{fill:rgb(199,233,180)}
+.YlGnBu .q3-9{fill:rgb(127,205,187)}
+.YlGnBu .q4-9{fill:rgb(65,182,196)}
+.YlGnBu .q5-9{fill:rgb(29,145,192)}
+.YlGnBu .q6-9{fill:rgb(34,94,168)}
+.YlGnBu .q7-9{fill:rgb(37,52,148)}
+.YlGnBu .q8-9{fill:rgb(8,29,88)}
+
+</style>
+<body>
+<script src="js/d3.v3.min.js"></script>
+<script>
+
+var width = 480,
+    height = 136,
+    cellSize = 17; // cell size
+
+var weeks_per_year = 53,
+    days_per_week = 7;
+
+var year_start = 1964,
+    year_end = 2013;
+
+var month_start = 11,
+    day_start = 1,
+    month_end = 3,
+    day_end = 31;
+
+var day_of_week = d3.time.format("%w"),
+    week_of_year = d3.time.format("%U"),
+    year = d3.time.format("%Y"),
+    date_format = d3.time.format("%Y-%m-%d");
+
+function weeks_in_interval(start_date, end_date) {
+  return ((end_date.getFullYear() - start_date.getFullYear()) * weeks_per_year
+          + +week_of_year(end_date)
+          - +week_of_year(start_date));
+}
+
+width = (3 + weeks_in_interval(new Date(year_start, month_start-1, day_start),
+                               new Date(year_start+1, month_end-1, day_end+1))) * cellSize;
+
+var color = d3.scale.quantize()
+    .domain([0.0, 2.0])
+    .range(d3.range(9).map(function(d) { return "q" + d + "-9"; }));
+
+var svg = d3.select("body").selectAll("svg")
+    .data(d3.range(year_start, year_end + 1))
+  .enter().append("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("class", "YlGnBu")
+  .append("g")
+    .attr("transform", "translate(1," + (height - cellSize * days_per_week - 1) + ")");
+
+svg.append("text")
+    .attr("transform", function(d) {
+      var start_date = new Date(+d, month_start-1, day_start);
+      var x = (weeks_per_year - week_of_year(start_date))*cellSize;
+      return "translate(" + x + ", -6)";
+    })
+    .style("text-anchor", "middle")
+    .text(function(d) {
+      var year = +d;
+      return "Winter of " + year + "-" + (year+1);
+    });
+
+var rect = svg.selectAll(".day")
+    .data(function(d) {
+            return d3.time.days(new Date(d, month_start-1, day_start),
+                                new Date(d + 1, month_end-1, day_end+1));
+          })
+  .enter().append("rect")
+    .attr("class", "day")
+    .attr("width", cellSize)
+    .attr("height", cellSize)
+    .attr("x", function(d) {
+      var this_month = d.getMonth() + 1;
+      var y = d.getFullYear();
+      if(this_month <= month_end) {
+        y -= 1;
+      }
+      var start_date = new Date(y, month_start-1, day_start);
+      var start_week = +week_of_year(start_date);
+      var x = 0;
+      if(this_month >= month_start) {
+        x = (+week_of_year(d) - start_week) * cellSize;
+      }
+      else if(this_month <= month_end) {
+        x = (weeks_per_year + +week_of_year(d) - start_week) * cellSize;
+      }
+      return x;
+    })
+    .attr("y", function(d) { return day_of_week(d) * cellSize; })
+    .datum(date_format);
+
+rect.append("title")
+    .text(function(d) { return d; });
+
+// svg.selectAll(".month")
+//     .data(function(d) { return d3.time.months(new Date(d, month_start, day_start), new Date(d + 1, month_end-1, day_end+1)); })
+//   .enter().append("path")
+//     .attr("class", "month")
+//     .attr("d", monthPath);
+
+// Declaring data outside the scope of the csv() call so I can inspect
+// the object at runtime
+var data;
+d3.csv("data/chicago_weather.csv", function(error, csv) {
+  data = d3.nest()
+    .key(function(d) { return d.DATE; })
+    .rollup(function(d) { return +d[0].SNOW_INCHES; })
+    .map(csv);
+
+  rect.filter(function(d) { return d in data; })
+      .attr("class", function(d) { return "day " + color(data[d]); })
+    .select("title")
+      .text(function(d) { return d + ": " + data[d] + " inches"; });
+});
+
+function monthPath(t0) {
+  var t1 = new Date(t0.getFullYear(), t0.getMonth() + 1, 0),
+      day0 = +day_of_week(t0), week0 = +week_of_year(t0),
+      day1 = +day_of_week(t1), week1 = +week_of_year(t1);
+  return "M" + (week0 + 1) * cellSize + "," + day0 * cellSize
+      + "H" + week0 * cellSize + "V" + days_per_week * cellSize
+      + "H" + week1 * cellSize + "V" + (day1 + 1) * cellSize
+      + "H" + (week1 + 1) * cellSize + "V" + 0
+      + "H" + (week0 + 1) * cellSize + "Z";
+}
+</script>
