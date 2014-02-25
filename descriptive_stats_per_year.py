@@ -3,17 +3,17 @@ import csv
 from datetime import datetime
 from time import mktime
 
-# HOURS_PER_DAY = 24
-# MINUTES_PER_HOUR = 60
-# SECONDS_PER_MINUTE = 60
-# SECONDS_PER_DAY = SECONDS_PER_MINUTE * MINUTES_PER_HOUR * HOURS_PER_DAY
+HOURS_PER_DAY = 24
+MINUTES_PER_HOUR = 60
+SECONDS_PER_MINUTE = 60
+SECONDS_PER_DAY = SECONDS_PER_MINUTE * MINUTES_PER_HOUR * HOURS_PER_DAY
 
-# def seconds_since_epoch(date):
-#     return mktime(date.timetuple())
+def seconds_since_epoch(date):
+    return mktime(date.timetuple())
 
-# def days_in_range(date_start, date_end):
-#     delta = seconds_since_epoch(date_end) - seconds_since_epoch(date_start)
-#     return 1 + int(delta / SECONDS_PER_DAY)
+def days_in_range(date_start, date_end):
+    delta = seconds_since_epoch(date_end) - seconds_since_epoch(date_start)
+    return 1 + int(delta / SECONDS_PER_DAY)
 
 def date_in_winter(date):
     if date >= datetime(date.year, 11, 1):
@@ -53,32 +53,34 @@ with open('data/chicago_weather.csv', 'rb') as f:
 
 
 
+stats_per_year = defaultdict(lambda: {})
 for year, observations in winter_by_year.iteritems():
     observations.sort(key=lambda o: o['DATE'])
     print "Winter of {year}".format(
             year=observations[0]['DATE'].strftime('%Y')
         )
-    print "Date range: {start} to {end}".format(
-            start=observations[0]['DATE'].strftime('%A, %B %d, %Y'),
-            end=observations[-1]['DATE'].strftime('%A, %B %d, %Y')
-        )
-    print ""
-    # days_observed = len(observations)
-    # days_total = days_in_range(observations[0]['DATE'], observations[-1]['DATE'])
-    # if days_observed != days_total:
-    #     print "{0} days missing!".format(
-    #             days_total - days_observed
-    #         )
-    print '{0} heatwave days (ABOVE freezing all day).'.format(
-            len(filter(is_winter_heatwave_day, observations))
-        )
-    print '{0} subzero days (BELOW freezing all day).'.format(
-            len(filter(is_subzero_day, observations))
-        )
-    print '{0} days with snow on the ground.'.format(
-            len(filter(is_there_snow, observations))
-        )
-    print '{0} subzero, snowy days.'.format(
+    stats_per_year[year] = {
+        'date_start': observations[0]['DATE'].strftime('%A, %B %d, %Y'),
+        'date_end': observations[-1]['DATE'].strftime('%A, %B %d, %Y'),
+        'days': days_in_range(observations[0]['DATE'], observations[-1]['DATE']),
+        'heatwave days (ABOVE freezing all day)': 
+            len(filter(is_winter_heatwave_day, observations)),
+        'subzero days (BELOW freezing all day)':
+            len(filter(is_subzero_day, observations)),
+        'days with snow on the ground':
+            len(filter(is_there_snow, observations)),
+        'subzero, snowy days':
             len(filter(is_snow_and_subzero, observations))
-        )
+    }
+    for description, value in stats_per_year[year].items():
+        print '{d}: {v}'.format(v=value, d=description)
     print ""
+
+
+with open('descriptive_stats_per_year.csv', 'wb') as f:
+    fieldnames = ['year'] + stats_per_year[stats_per_year.keys()[0]].keys()
+    dw = csv.DictWriter(f, fieldnames=fieldnames)
+    dw.writeheader()
+    for year, stats in stats_per_year.iteritems():
+        stats['year'] = year
+        dw.writerow(stats)
