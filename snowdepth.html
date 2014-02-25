@@ -3,7 +3,7 @@
 <style>
 
 body {
-  font: 10px sans-serif;
+/*  font: 10px sans-serif; */
   shape-rendering: crispEdges;
 }
 
@@ -30,100 +30,61 @@ body {
 
 </style>
 <body>
+  <!-- D3 source when this is hosted as a Gist -->
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+
+<!-- D3 source during local development
+
 <script src="js/d3.v3.min.js"></script>
+
+-->
 <script>
-
-var width = 480,
-    height = 136,
-    cellSize = 17; // cell size
-
-var weeks_per_year = 53,
-    days_per_week = 7;
-
-var year_start = 1964,
-    year_end = 2013;
-
-var month_start = 11,
-    day_start = 1,
-    month_end = 3,
-    day_end = 31;
-
-var day_of_week = d3.time.format("%w"),
-    week_of_year = d3.time.format("%U"),
-    year = d3.time.format("%Y"),
-    date_format = d3.time.format("%Y-%m-%d");
-
-function weeks_in_interval(start_date, end_date) {
-  return ((end_date.getFullYear() - start_date.getFullYear()) * weeks_per_year
-          + +week_of_year(end_date)
-          - +week_of_year(start_date));
-}
-
-width = (3 + weeks_in_interval(new Date(year_start, month_start-1, day_start),
-                               new Date(year_start+1, month_end-1, day_end+1))) * cellSize;
+var margin = {top: 49, right: 20, bottom: 20, left: 19},
+    width = 200 - margin.right - margin.left, // width
+    height = 180 - margin.top - margin.bottom, // height
+    cell_size = 20,
+    days_per_week = 7,
+    year_start = 1978, month_start = 10,
+    year_end = 1979, month_end = 2;
 
 var color = d3.scale.quantize()
     .domain([0.0, 2.0])
     .range(d3.range(9).map(function(d) { return "q" + d + "-9"; }));
 
-var svg = d3.select("body").selectAll("svg")
-    .data(d3.range(year_start, year_end + 1))
-  .enter().append("svg")
-    .attr("width", width)
-    .attr("height", height)
-    .attr("class", "YlGnBu")
-  .append("g")
-    .attr("transform", "translate(1," + (height - cellSize * days_per_week - 1) + ")");
+var day = d3.time.format("%w"),
+    week = d3.time.format("%U"),
+    percent = d3.format(".1%"),
+    format = d3.time.format("%Y-%m-%d"),
+    day_of_week = d3.time.format("%A"),
+    month_name = d3.time.format("%B %Y");
 
-svg.append("text")
-    .attr("transform", function(d) {
-      var start_date = new Date(+d, month_start-1, day_start);
-      var x = (weeks_per_year - week_of_year(start_date))*cellSize;
-      return "translate(" + x + ", -6)";
-    })
-    .style("text-anchor", "middle")
-    .text(function(d) {
-      var year = +d;
-      return "Winter of " + year + "-" + (year+1);
-    });
+var months = d3.select("body").selectAll("svg")
+    .data(d3.time.months( new Date(year_start, month_start), 
+                          new Date(year_end, month_end + 1)))
+    .enter().append("svg")
+      .attr("width", width + margin.right + margin.left)
+      .attr("height", height + margin.top + margin.bottom)
+      .attr("class", "month YlGnBu")
+    .append("g")
+      .attr("transform", "translate(" + (margin.left + (width - cell_size * days_per_week) / 2) + "," + (margin.top + (height - cell_size * 6) / 2) + ")");
 
-var rect = svg.selectAll(".day")
-    .data(function(d) {
-            return d3.time.days(new Date(d, month_start-1, day_start),
-                                new Date(d + 1, month_end-1, day_end+1));
-          })
-  .enter().append("rect")
-    .attr("class", "day")
-    .attr("width", cellSize)
-    .attr("height", cellSize)
-    .attr("x", function(d) {
-      var this_month = d.getMonth() + 1;
-      var y = d.getFullYear();
-      if(this_month <= month_end) {
-        y -= 1;
-      }
-      var start_date = new Date(y, month_start-1, day_start);
-      var start_week = +week_of_year(start_date);
-      var x = 0;
-      if(this_month >= month_start) {
-        x = (+week_of_year(d) - start_week) * cellSize;
-      }
-      else if(this_month <= month_end) {
-        x = (weeks_per_year + +week_of_year(d) - start_week) * cellSize;
-      }
-      return x;
-    })
-    .attr("y", function(d) { return day_of_week(d) * cellSize; })
-    .datum(date_format);
+months.append("text")
+  .attr("transform", "translate(" + (cell_size * days_per_week)/2 + ", -" +  height/4 + ")")
+  .attr("text-anchor", "middle")
+  .text(month_name);
 
-rect.append("title")
+var days = months.selectAll("rect.day")
+    .data(function(d, i) { return d3.time.days(d, new Date(d.getFullYear(), d.getMonth()+1, 1)); })
+    .enter().append("rect")
+      .attr("class", "day")
+      .attr("width", cell_size)
+      .attr("height", cell_size)
+      .attr("x", function(d) { return day(d) * cell_size; })
+      .attr("y", function(d) { return (week(d) - week(new Date(d.getFullYear(),d.getMonth(),1))) * cell_size; })
+      .datum(format);
+
+days.append("title")
     .text(function(d) { return d; });
-
-// svg.selectAll(".month")
-//     .data(function(d) { return d3.time.months(new Date(d, month_start, day_start), new Date(d + 1, month_end-1, day_end+1)); })
-//   .enter().append("path")
-//     .attr("class", "month")
-//     .attr("d", monthPath);
 
 // Declaring data outside the scope of the csv() call so I can inspect
 // the object at runtime
@@ -134,20 +95,10 @@ d3.csv("data/chicago_snowdepth.csv", function(error, csv) {
     .rollup(function(d) { return +d[0].SNOWDEPTH_INCHES; })
     .map(csv);
 
-  rect.filter(function(d) { return d in data; })
+  days.filter(function(d) { return d in data; })
       .attr("class", function(d) { return "day " + color(data[d]); })
     .select("title")
       .text(function(d) { return d + ": " + data[d] + " inches"; });
 });
 
-function monthPath(t0) {
-  var t1 = new Date(t0.getFullYear(), t0.getMonth() + 1, 0),
-      day0 = +day_of_week(t0), week0 = +week_of_year(t0),
-      day1 = +day_of_week(t1), week1 = +week_of_year(t1);
-  return "M" + (week0 + 1) * cellSize + "," + day0 * cellSize
-      + "H" + week0 * cellSize + "V" + days_per_week * cellSize
-      + "H" + week1 * cellSize + "V" + (day1 + 1) * cellSize
-      + "H" + (week1 + 1) * cellSize + "V" + 0
-      + "H" + (week0 + 1) * cellSize + "Z";
-}
 </script>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body {
+/*  font: 10px sans-serif; */
+  shape-rendering: crispEdges;
+}
+
+.day {
+  fill: #fff;
+  stroke: #ccc;
+}
+
+#controls {
+  
+}
+
+#chart {
+
+}
+
+.RdBu .q0-3{fill:rgb(239,138,98)} 
+.RdBu .q1-3{fill:rgb(247,247,247)} 
+.RdBu .q2-3{fill:rgb(103,169,207)}
+
+.PuOr .q0-6{fill:rgb(179,88,6)} 
+.PuOr .q1-6{fill:rgb(241,163,64)} 
+.PuOr .q2-6{fill:rgb(254,224,182)} 
+.PuOr .q3-6{fill:rgb(216,218,235)} 
+.PuOr .q4-6{fill:rgb(153,142,195)} 
+.PuOr .q5-6{fill:rgb(84,39,136)}
+
+.YlGnBu .q0-9{fill:rgb(255,255,217)}
+.YlGnBu .q1-9{fill:rgb(237,248,177)}
+.YlGnBu .q2-9{fill:rgb(199,233,180)}
+.YlGnBu .q3-9{fill:rgb(127,205,187)}
+.YlGnBu .q4-9{fill:rgb(65,182,196)}
+.YlGnBu .q5-9{fill:rgb(29,145,192)}
+.YlGnBu .q6-9{fill:rgb(34,94,168)}
+.YlGnBu .q7-9{fill:rgb(37,52,148)}
+.YlGnBu .q8-9{fill:rgb(8,29,88)}
+
+</style>
+<body>
+<div id="controls"></div>
+<div id="chart"></div>
+
+  <!-- D3 source when this is hosted as a Gist -->
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+
+<!-- D3 source during local development
+
+<script src="js/d3.v3.min.js"></script>
+
+-->
+<script>
+var descriptions = {
+  "3": "above freezing AND no snow? this is basically summer!",
+  "2": "above freezing all day! maybe some of this snow will melt...",
+  "1": "typical winter day, around freezing, but no snow!",
+  "0": "typical blah winter day, around freezing with snow on the ground.",
+  "-1": "it's below freezing all day, but at least there's no snow.",
+  "-2": "ugh, below freezing all day AND there's snow on the ground."
+};
+
+var data;
+function winter_starting_in_year(year_start, target_container_id) {
+  var margin = {top: 49, right: 20, bottom: 20, left: 19},
+      width = 200 - margin.right - margin.left, // width
+      height = 180 - margin.top - margin.bottom, // height
+      cell_size = 20,
+      days_per_week = 7,
+      winter_start = new Date(year_start, 10, 1),
+      winter_end = new Date(year_start + 1, 2, 31);
+
+  var color = d3.scale.quantize()
+      .domain([3.0, -2.0])
+      .range(d3.range(6).map(function(d) { return "q" + d + "-6"; }));
+
+  var day = d3.time.format("%w"),
+      week = d3.time.format("%U"),
+      percent = d3.format(".1%"),
+      format = d3.time.format("%Y-%m-%d"),
+      day_of_week = d3.time.format("%A"),
+      month_name = d3.time.format("%B %Y");
+
+  var months = d3.select(target_container_id).selectAll("svg")
+      .data(d3.time.months(winter_start, winter_end))
+      .enter().append("svg")
+        .attr("width", width + margin.right + margin.left)
+        .attr("height", height + margin.top + margin.bottom)
+        .attr("class", "month PuOr")
+      .append("g")
+        .attr("transform", "translate(" + (margin.left + (width - cell_size * days_per_week) / 2) + "," + (margin.top + (height - cell_size * 6) / 2) + ")");
+
+  months.append("text")
+    .attr("transform", "translate(" + (cell_size * days_per_week)/2 + ", -" +  height/4 + ")")
+    .attr("text-anchor", "middle")
+    .text(month_name);
+
+  var days = months.selectAll("rect.day")
+      .data(function(d, i) { return d3.time.days(d, new Date(d.getFullYear(), d.getMonth()+1, 1)); })
+      .enter().append("rect")
+        .attr("class", "day")
+        .attr("width", cell_size)
+        .attr("height", cell_size)
+        .attr("x", function(d) { return day(d) * cell_size; })
+        .attr("y", function(d) { return (week(d) - week(new Date(d.getFullYear(),d.getMonth(),1))) * cell_size; })
+        .datum(format);
+
+  days.append("title")
+      .text(function(d) { return d; });
+
+
+  d3.csv("chicago_weather.csv", function(error, csv) {
+    data = d3.nest()
+      .key(function(d) { return d.DATE; })
+      .rollup(function(d) {
+        if(+d[0].TEMP_MIN_F > 32) {
+          // above freezing all day!
+          if(+d[0].SNOWDEPTH_INCHES > 0) {
+            // above freezing all day! maybe some of this snow will melt...
+            return 3;
+          }
+          else {
+            // above freezing AND no snow? this is basically summer!
+            return 2;
+          }
+        }
+        else if(+d[0].TEMP_MAX_F <= 32) {
+          if(+d[0].SNOWDEPTH_INCHES > 0) {
+            // ugh, below freezing all day AND there's snow on the ground.
+            return 1;
+          }
+          else {
+            // it's below freezing all day, but at least there's no snow.
+            return 0;
+          }
+        }
+        if(+d[0].SNOWDEPTH_INCHES > 0) {
+          // typical blah winter day, around freezing with snow on the ground.
+          return -1;
+        }
+        else {
+          // typical winter day, around freezing, but no snow!
+          return -2;
+        }
+      })
+      .map(csv);
+
+    days.filter(function(d) { return d in data; })
+        .attr("class", function(d) { return "day " + color(data[d]); })
+      .select("title")
+        .text(function(d) { 
+          return d + ": " + descriptions[data[d]]; 
+        });
+  });
+}
+winter_starting_in_year(1978, "#chart");
+</script>

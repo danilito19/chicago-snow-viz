@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body {
+/*  font: 10px sans-serif; */
+  shape-rendering: crispEdges;
+}
+
+.day {
+  fill: #fff;
+  stroke: #ccc;
+}
+
+#controls {
+  
+}
+
+#chart {
+
+}
+
+.YlGnBu .q0-9{fill:rgb(255,255,217)}
+.YlGnBu .q1-9{fill:rgb(237,248,177)}
+.YlGnBu .q2-9{fill:rgb(199,233,180)}
+.YlGnBu .q3-9{fill:rgb(127,205,187)}
+.YlGnBu .q4-9{fill:rgb(65,182,196)}
+.YlGnBu .q5-9{fill:rgb(29,145,192)}
+.YlGnBu .q6-9{fill:rgb(34,94,168)}
+.YlGnBu .q7-9{fill:rgb(37,52,148)}
+.YlGnBu .q8-9{fill:rgb(8,29,88)}
+
+</style>
+<body>
+<div id="controls"></div>
+<div id="chart"></div>
+
+  <!-- D3 source when this is hosted as a Gist -->
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+
+<!-- D3 source during local development
+
+<script src="js/d3.v3.min.js"></script>
+
+-->
+<script>
+function winter_starting_in_year(year_start, target_container_id) {
+  var margin = {top: 49, right: 20, bottom: 20, left: 19},
+      width = 200 - margin.right - margin.left, // width
+      height = 180 - margin.top - margin.bottom, // height
+      cell_size = 20,
+      days_per_week = 7,
+      winter_start = new Date(year_start, 10, 1),
+      winter_end = new Date(year_start + 1, 2, 31);
+
+  var color = d3.scale.quantize()
+      .domain([0.0, 2.0])
+      .range(d3.range(9).map(function(d) { return "q" + d + "-9"; }));
+
+  var day = d3.time.format("%w"),
+      week = d3.time.format("%U"),
+      percent = d3.format(".1%"),
+      format = d3.time.format("%Y-%m-%d"),
+      day_of_week = d3.time.format("%A"),
+      month_name = d3.time.format("%B %Y");
+
+  var months = d3.select(target_container_id).selectAll("svg")
+      .data(d3.time.months(winter_start, winter_end))
+      .enter().append("svg")
+        .attr("width", width + margin.right + margin.left)
+        .attr("height", height + margin.top + margin.bottom)
+        .attr("class", "month YlGnBu")
+      .append("g")
+        .attr("transform", "translate(" + (margin.left + (width - cell_size * days_per_week) / 2) + "," + (margin.top + (height - cell_size * 6) / 2) + ")");
+
+  months.append("text")
+    .attr("transform", "translate(" + (cell_size * days_per_week)/2 + ", -" +  height/4 + ")")
+    .attr("text-anchor", "middle")
+    .text(month_name);
+
+  var days = months.selectAll("rect.day")
+      .data(function(d, i) { return d3.time.days(d, new Date(d.getFullYear(), d.getMonth()+1, 1)); })
+      .enter().append("rect")
+        .attr("class", "day")
+        .attr("width", cell_size)
+        .attr("height", cell_size)
+        .attr("x", function(d) { return day(d) * cell_size; })
+        .attr("y", function(d) { return (week(d) - week(new Date(d.getFullYear(),d.getMonth(),1))) * cell_size; })
+        .datum(format);
+
+  days.append("title")
+      .text(function(d) { return d; });
+
+  // Declaring data outside the scope of the csv() call so I can inspect
+  // the object at runtime
+  var data;
+  d3.csv("chicago_snowdepth.csv", function(error, csv) {
+    data = d3.nest()
+      .key(function(d) { return d.DATE; })
+      .rollup(function(d) { return d[0]; })
+      .map(csv);
+
+    days.filter(function(d) { return d in data; })
+        .attr("class", function(d) { return "day " + color(data[d].SNOWDEPTH_INCHES); })
+      .select("title")
+        .text(function(d) { return d + ": " + data[d].SNOWDEPTH_INCHES + " inches"; });
+  });
+}
+winter_starting_in_year(1978, '#chart');
+</script>
